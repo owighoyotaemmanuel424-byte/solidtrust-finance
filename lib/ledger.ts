@@ -26,7 +26,7 @@ export async function postTransaction(input: PostTransactionInput) {
     const txRow=await tx.transaction.create({data:{
       reference:input.reference,type:input.type,status:'posted',
       amount:new Decimal(credits.toFixed(2)),currency:input.entries[0].currency??'USD',
-      description:input.description,metadata: input.metadata ?? {},
+      description:input.description,metadata: JSON.parse(JSON.stringify(input.metadata ?? {})),
       initiatedById:input.initiatedById,postedAt:new Date()
     }});
     for(const entry of input.entries){
