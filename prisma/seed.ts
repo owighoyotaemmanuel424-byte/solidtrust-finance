@@ -1,11 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
-import { Pool, neonConfig } from '@neondatabase/serverless';
 import { hash } from '@node-rs/argon2';
-import ws from 'ws';
-neonConfig.webSocketConstructor=ws;
-const pool=new Pool({connectionString:process.env.DATABASE_URL!});
-const prisma=new PrismaClient({adapter:new PrismaNeon(pool)});
+const adapter=new PrismaNeon({connectionString:process.env.DATABASE_URL!});
+const prisma=new PrismaClient({adapter});
 async function main(){
   const systemAccounts=[
     {accountNumber:'SYS:CASH',type:'current' as const,isSystem:true},
