@@ -1,8 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { hash } from '@node-rs/argon2';
-const adapter=new PrismaNeon({connectionString:process.env.DATABASE_URL!});
-const prisma=new PrismaClient({adapter});
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) throw new Error('DATABASE_URL is required for Prisma seed');
+
+const adapter = new PrismaNeon({ connectionString });
+const prisma = new PrismaClient({ adapter });
 async function main(){
   const systemAccounts=[
     {accountNumber:'SYS:CASH',type:'current' as const,isSystem:true},
