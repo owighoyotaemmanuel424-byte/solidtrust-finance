@@ -1,11 +1,12 @@
 import { argon2id } from "@node-rs/argon2";
 import { prisma } from "@/lib/db";
-import { createSessionToken, sessionCookie } from "@/lib/auth";
+import { assertSessionSecret, createSessionToken, sessionCookie } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
+    assertSessionSecret();
     const body = await request.json();
     const name = String(body.name ?? "").trim();
     const email = String(body.email ?? "").trim().toLowerCase();
