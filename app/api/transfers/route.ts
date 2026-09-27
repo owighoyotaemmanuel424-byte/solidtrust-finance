@@ -35,7 +35,6 @@ export async function POST(request: Request) {
     const transaction = await postTransaction({
       reference: reference(),
       type: "transfer",
-      currency: source.currency,
       description: description || "Account transfer",
       initiatedById: user.id,
       entries: [
