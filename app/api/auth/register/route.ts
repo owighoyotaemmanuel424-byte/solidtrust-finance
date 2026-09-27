@@ -1,4 +1,4 @@
-import { argon2id } from "@node-rs/argon2";
+import { hash, verify } from "@node-rs/argon2";
 import { prisma } from "@/lib/db";
 import { assertSessionSecret, createSessionToken, sessionCookie } from "@/lib/auth";
 
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
     if (existing) return Response.json({ error: "An account with this email already exists. Please sign in." }, { status: 409 });
 
-    const passwordHash = await argon2id.hash(password);
+    const passwordHash = await hash(password);
     const accountNumber = `30${Date.now().toString().slice(-8)}`;
 
     const user = await prisma.$transaction(async (tx) => {
