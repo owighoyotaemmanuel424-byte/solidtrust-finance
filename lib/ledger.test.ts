@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 
 const mockPrisma = vi.hoisted(() => ({
   $transaction: vi.fn(),
+  ledgerEntry: { groupBy: vi.fn(), findFirst: vi.fn() },
 }));
 
 vi.mock('./db', () => ({ prisma: mockPrisma }));
