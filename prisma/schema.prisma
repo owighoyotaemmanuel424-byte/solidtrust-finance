@@ -47,6 +47,12 @@ enum LedgerDirection {
   credit
 }
 
+enum WithdrawalStatus {
+  pending
+  approved
+  rejected
+}
+
 enum LoanStatus {
   applied
   under_review
@@ -74,6 +80,8 @@ model User {
   accounts Account[]
   transactions Transaction[] @relation("initiated")
   loans Loan[]
+  withdrawalRequests WithdrawalRequest[]
+  reviewedWithdrawals WithdrawalRequest[] @relation("withdrawalReviewer")
   auditLogs AuditLog[]
   @@map("users")
 }
@@ -89,6 +97,7 @@ model Account {
   createdAt DateTime @default(now()) @map("created_at")
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   ledgerEntries LedgerEntry[]
+  withdrawalRequests WithdrawalRequest[]
   @@index([userId])
   @@map("accounts")
 }
@@ -127,6 +136,26 @@ model LedgerEntry {
   @@index([transactionId])
   @@index([accountId])
   @@map("ledger_entries")
+}
+
+model WithdrawalRequest {
+  id String @id @default(uuid())
+  userId String @map("user_id")
+  accountId String @map("account_id")
+  amount Decimal @db.Decimal(18, 2)
+  currency String @default("USD")
+  status WithdrawalStatus @default(pending)
+  reason String?
+  reviewedById String? @map("reviewed_by")
+  transactionId String? @unique @map("transaction_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  reviewedAt DateTime? @map("reviewed_at")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("withdrawalReviewer", fields: [reviewedById], references: [id])
+  @@index([status, createdAt])
+  @@index([userId])
+  @@map("withdrawal_requests")
 }
 
 model Loan {
