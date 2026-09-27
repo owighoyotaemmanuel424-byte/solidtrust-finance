@@ -1,18 +1,63 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
-enum Role { customer admin compliance }
-enum AccountType { savings current }
-enum AccountStatus { active frozen closed }
-enum TxType { deposit withdrawal transfer loan_disbursement loan_repayment fee interest }
-enum TxStatus { pending posted failed reversed }
-enum LedgerDirection { debit credit }
-enum LoanStatus { applied under_review approved disbursed repaying repaid defaulted rejected }
+
+enum Role {
+  customer
+  admin
+  compliance
+}
+
+enum AccountType {
+  savings
+  current
+}
+
+enum AccountStatus {
+  active
+  frozen
+  closed
+}
+
+enum TxType {
+  deposit
+  withdrawal
+  transfer
+  loan_disbursement
+  loan_repayment
+  fee
+  interest
+}
+
+enum TxStatus {
+  pending
+  posted
+  failed
+  reversed
+}
+
+enum LedgerDirection {
+  debit
+  credit
+}
+
+enum LoanStatus {
+  applied
+  under_review
+  approved
+  disbursed
+  repaying
+  repaid
+  defaulted
+  rejected
+}
+
 model User {
   id String @id @default(uuid())
   email String @unique
@@ -32,6 +77,7 @@ model User {
   auditLogs AuditLog[]
   @@map("users")
 }
+
 model Account {
   id String @id @default(uuid())
   userId String? @map("user_id")
@@ -46,6 +92,7 @@ model Account {
   @@index([userId])
   @@map("accounts")
 }
+
 model Transaction {
   id String @id @default(uuid())
   reference String @unique
@@ -65,6 +112,7 @@ model Transaction {
   @@index([createdAt])
   @@map("transactions")
 }
+
 model LedgerEntry {
   id String @id @default(uuid())
   transactionId String @map("transaction_id")
@@ -80,6 +128,7 @@ model LedgerEntry {
   @@index([accountId])
   @@map("ledger_entries")
 }
+
 model Loan {
   id String @id @default(uuid())
   userId String @map("user_id")
@@ -93,6 +142,7 @@ model Loan {
   repayments LoanRepayment[]
   @@map("loans")
 }
+
 model LoanRepayment {
   id String @id @default(uuid())
   loanId String @map("loan_id")
@@ -105,6 +155,7 @@ model LoanRepayment {
   transaction Transaction @relation(fields: [transactionId], references: [id])
   @@map("loan_repayments")
 }
+
 model AuditLog {
   id String @id @default(uuid())
   actorId String? @map("actor_id")
