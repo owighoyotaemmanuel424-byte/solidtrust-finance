@@ -1,4 +1,4 @@
-import { argon2id } from "@node-rs/argon2";
+import { hash, verify } from "@node-rs/argon2";
 import { prisma } from "@/lib/db";
 import { createSessionToken, sessionCookie } from "@/lib/auth";
 
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user?.passwordHash) return Response.json({ error: "Invalid email or password." }, { status: 401 });
 
-    const valid = await argon2id.verify(user.passwordHash, password);
+    const valid = await verify(user.passwordHash, password);
     if (!valid) return Response.json({ error: "Invalid email or password." }, { status: 401 });
 
     const response = Response.json({ ok: true, user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role } });
