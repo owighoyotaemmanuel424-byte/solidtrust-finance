@@ -1,0 +1,8 @@
+import { requireAdmin } from "@/lib/admin";
+import { prisma } from "@/lib/db";
+export const dynamic="force-dynamic";
+export default async function AdminFunding(){
+  await requireAdmin();
+  const accounts=await prisma.account.findMany({where:{isSystem:false,status:"active"},select:{id:true,accountNumber:true,currency:true,user:{select:{fullName:true,email:true}}},orderBy:{createdAt:"desc"}});
+  return <main className="min-h-screen bg-trust-50"><div className="container py-10"><h1 className="text-3xl font-bold">Customer funding</h1><p className="mt-2 text-slate-500">Post an auditable deposit from the system cash account to a customer account.</p><div className="mt-8 rounded-3xl border border-trust-100 bg-white p-6 shadow-soft"><form action="/api/admin/funding" method="post" className="grid gap-5 md:grid-cols-3"><label className="text-sm font-medium md:col-span-3">Customer account<select name="accountId" required className="mt-2 w-full rounded-xl border p-3"><option value="">Select account</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.accountNumber} · {a.user?.fullName||"Customer"} · {a.currency}</option>)}</select></label><label className="text-sm font-medium">Amount<input name="amount" required inputMode="decimal" placeholder="0.00" className="mt-2 w-full rounded-xl border p-3"/></label><label className="text-sm font-medium md:col-span-2">Description<input name="description" placeholder="Admin funding" className="mt-2 w-full rounded-xl border p-3"/></label><button className="rounded-xl bg-trust-700 px-4 py-3 font-semibold text-white md:col-span-3">Post funding</button></form></div></div></main>;
+}
