@@ -80,6 +80,7 @@ model User {
   accounts Account[]
   transactions Transaction[] @relation("initiated")
   loans Loan[]
+  approvedLoans Loan[] @relation("loanApprover")
   withdrawalRequests WithdrawalRequest[]
   reviewedWithdrawals WithdrawalRequest[] @relation("withdrawalReviewer")
   auditLogs AuditLog[]
@@ -166,6 +167,10 @@ model Loan {
   termMonths Int @map("term_months")
   status LoanStatus @default(applied)
   disbursedAt DateTime? @map("disbursed_at")
+  approvedById String? @map("approved_by")
+  approvedAt DateTime? @map("approved_at")
+  disbursementTransactionId String? @unique @map("disbursement_transaction_id")
+  approvedBy User? @relation("loanApprover", fields: [approvedById], references: [id])
   createdAt DateTime @default(now()) @map("created_at")
   user User @relation(fields: [userId], references: [id])
   repayments LoanRepayment[]
