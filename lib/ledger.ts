@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import { Prisma } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 import Decimal from 'decimal.js';
 import { prisma } from './db';
 
@@ -18,7 +19,7 @@ export async function postTransaction(input: PostTransactionInput) {
   const debits=input.entries.filter(e=>e.direction==='debit').reduce((s,e)=>s.add(toDecimalString(e.amount)),new Decimal(0));
   const credits=input.entries.filter(e=>e.direction==='credit').reduce((s,e)=>s.add(toDecimalString(e.amount)),new Decimal(0));
   if (!debits.equals(credits)) throw new Error(`Unbalanced ledger transaction: debits=${debits} credits=${credits}`);
-  return prisma.$transaction(async tx=>{
+  return prisma.$transaction(async (tx: PrismaClient) => {
     const existing=await tx.transaction.findUnique({where:{reference:input.reference}});
     if(existing) return existing;
     const last=await tx.ledgerEntry.findFirst({orderBy:[{createdAt:'desc'},{id:'desc'}],select:{runningHash:true}});
