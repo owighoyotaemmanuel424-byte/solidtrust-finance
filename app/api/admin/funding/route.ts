@@ -8,7 +8,10 @@ export async function POST(request: Request) {
   try {
     const admin = await getCurrentUser();
     if (!admin || (admin.role !== "admin" && admin.role !== "compliance")) return Response.json({ error: "Admin access required." }, { status: 403 });
-    const body = await request.json();
+    let body: Record<string, unknown> = {};
+    const contentType = request.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) body = await request.json();
+    else { const form = await request.formData(); body = { accountId: form.get("accountId"), amount: form.get("amount"), description: form.get("description") }; }
     const accountId = String(body.accountId ?? "");
     const amountText = String(body.amount ?? "");
     const description = String(body.description ?? "").trim().slice(0, 140);
