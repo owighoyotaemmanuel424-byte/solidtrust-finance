@@ -1,0 +1,9 @@
+import Link from "next/link";
+import { requireAdmin } from "@/lib/admin";
+import { prisma } from "@/lib/db";
+export const dynamic="force-dynamic";
+export default async function AdminWithdrawals(){
+  await requireAdmin();
+  const rows=await prisma.withdrawalRequest.findMany({where:{status:"pending"},orderBy:{createdAt:"asc"},include:{user:{select:{fullName:true,email:true}},account:{select:{accountNumber:true,currency:true}}}});
+  return <main className="min-h-screen bg-trust-50"><div className="container py-10"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-trust-600">Operations</p><h1 className="mt-2 text-3xl font-bold">Withdrawal review</h1></div><Link href="/admin" className="font-semibold text-trust-700">Admin dashboard</Link></div><div className="mt-8 space-y-4">{rows.length===0?<div className="rounded-2xl bg-white p-6 text-slate-500">No pending withdrawals.</div>:rows.map(row=><div key={row.id} className="rounded-2xl border border-trust-100 bg-white p-6 shadow-soft"><div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"><div><p className="font-semibold">{row.user.fullName}</p><p className="text-sm text-slate-500">{row.user.email} · {row.account.accountNumber}</p><p className="mt-2 text-xl font-bold">{Number(row.amount).toLocaleString("en-US",{style:"currency",currency:row.currency})}</p></div><div className="flex gap-3"><form action={`/api/admin/withdrawals/${row.id}`} method="post"><button name="action" value="approve" className="rounded-xl bg-trust-700 px-4 py-2 font-semibold text-white">Approve</button></form><form action={`/api/admin/withdrawals/${row.id}`} method="post"><button name="action" value="reject" className="rounded-xl border px-4 py-2 font-semibold">Reject</button></form></div></div></div>)}</div></div></main>;
+}
