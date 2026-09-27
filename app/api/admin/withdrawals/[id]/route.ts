@@ -8,7 +8,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
   try {
     const admin = await getCurrentUser();
     if (!admin || (admin.role !== "admin" && admin.role !== "compliance")) return Response.json({ error: "Admin access required." }, { status: 403 });
-    const body = await request.json();
+    let body: Record<string, unknown> = {};
+    const contentType = request.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) body = await request.json();
+    else { const form = await request.formData(); body = { action: form.get("action"), reason: form.get("reason") }; }
     const action = String(body.action ?? "");
     const reason = String(body.reason ?? "").trim().slice(0, 240);
     const requestRow = await prisma.withdrawalRequest.findUnique({ where: { id: params.id }, include: { account: true, user: { select: { id: true, fullName: true, email: true } } } });
