@@ -23,4 +23,5 @@ export default async function Dashboard(){
    </section>
    <section className="mt-8 rounded-[28px] border border-black/8 bg-white shadow-card"><div className="flex items-center justify-between border-b border-black/5 p-6"><div><h2 className="font-semibold">Recent activity</h2><p className="mt-1 text-sm text-black/40">Your latest financial activity</p></div><Link href="/transactions" className="text-sm font-semibold">View all</Link></div>{recent.length===0?<p className="p-6 text-sm text-black/45">No transactions yet.</p>:<div className="divide-y divide-black/5">{recent.map(tx=><div key={tx.id} className="flex items-center justify-between gap-4 p-5"><div className="min-w-0"><p className="font-medium capitalize">{tx.type.replaceAll("_"," ")}</p><p className="mt-1 truncate text-sm text-black/40">{tx.description||tx.reference}</p></div><div className="text-right"><p className="font-semibold">{money(tx.amount)}</p><p className="mt-1 text-xs capitalize text-black/40">{tx.status}</p></div></div>)}</div>}</section>
   </div>
- </main></div>\n}\n
+ </main></div>
+}
