@@ -44,8 +44,10 @@ export async function POST(request: Request) {
     const passwordHash = await hash(password);
     const accountNumber = `30${randomUUID().replace(/-/g, "").slice(0, 10)}`;
 
-    const user = await prisma.$transaction(async (tx) => {
-      const created = await tx.user.create({
+    // Keep the account creation path on a simple Prisma write transaction.
+    // This avoids requiring an interactive transaction from the Neon adapter.
+    const [user] = await prisma.$transaction([
+      prisma.user.create({
         data: {
           email,
           fullName: name,
@@ -63,19 +65,21 @@ export async function POST(request: Request) {
           email: true,
           fullName: true,
         },
-      });
+      }),
+    ]);
 
-      await tx.auditLog.create({
+    try {
+      await prisma.auditLog.create({
         data: {
-          actorId: created.id,
+          actorId: user.id,
           action: "user.registered",
           entity: "User",
-          entityId: created.id,
+          entityId: user.id,
         },
       });
-
-      return created;
-    });
+    } catch (auditError) {
+      console.error("Registration audit log failed", auditError);
+    }
 
     const response = Response.json({ ok: true, user }, { status: 201 });
     const secure = new URL(request.url).protocol === "https:";
