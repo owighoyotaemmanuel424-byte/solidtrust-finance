@@ -44,29 +44,27 @@ export async function POST(request: Request) {
     const passwordHash = await hash(password);
     const accountNumber = `30${randomUUID().replace(/-/g, "").slice(0, 10)}`;
 
-    // Keep the account creation path on a simple Prisma write transaction.
-    // This avoids requiring an interactive transaction from the Neon adapter.
-    const [user] = await prisma.$transaction([
-      prisma.user.create({
-        data: {
-          email,
-          fullName: name,
-          passwordHash,
-          accounts: {
-            create: {
-              accountNumber,
-              type: "savings",
-              currency: "USD",
-            },
+    // The nested account create is atomic and avoids interactive transactions
+    // with the Neon adapter.
+    const user = await prisma.user.create({
+      data: {
+        email,
+        fullName: name,
+        passwordHash,
+        accounts: {
+          create: {
+            accountNumber,
+            type: "savings",
+            currency: "USD",
           },
         },
-        select: {
-          id: true,
-          email: true,
-          fullName: true,
-        },
-      }),
-    ]);
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+      },
+    });
 
     try {
       await prisma.auditLog.create({
