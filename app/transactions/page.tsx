@@ -1,4 +1,77 @@
 import AppSidebar from "@/components/app-sidebar";
-import Link from"next/link";import{redirect}from"next/navigation";import{getCurrentUser}from"@/lib/current-user";import{prisma}from"@/lib/db";import{ArrowDownLeft,ArrowUpRight}from"lucide-react";export const dynamic="force-dynamic";
-export default async function Transactions(){const user=await getCurrentUser();if(!user)redirect("/login");const txs=await prisma.transaction.findMany({where:{initiatedById:user.id},orderBy:{createdAt:"desc"},take:50,select:{id:true,reference:true,type:true,status:true,amount:true,currency:true,description:true,createdAt:true}});return <div className="min-h-screen md:pl-[248px] transition-[padding]"><AppSidebar/><main className="app-shell"><div className="container py-10"><p className="text-sm text-black/40">Activity</p><h1 className="mt-2 text-4xl font-semibold tracking-[-.035em]">Transactions</h1><p className="mt-3 text-black/45">A clear record of your latest financial activity.</p><div className="mt-9 overflow-hidden rounded-[26px] border border-black/8 bg-white shadow-card">{txs.length===0?<p className="p-7 text-black/45">No transactions yet.</p>:<div className="divide-y divide-black/5">{txs.map(tx=><div key={tx.id} className="flex items-center gap-4 p-5"><div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#f0f0eb]">{tx.type.toLowerCase().includes("withdraw")?<ArrowDownLeft className="h-5 w-5"/>:<ArrowUpRight className="h-5 w-5" />}</div><div className="min-w-0 flex-1"><p className="font-semibold capitalize">{tx.type.replaceAll("_"," ")}</p><p className="truncate text-sm text-black/40">{tx.description||tx.reference}</p><p className="mt-1 text-xs text-black/30">{tx.createdAt.toLocaleString()}</p></div><div className="text-right"><p className="font-semibold">{Number(tx.amount).toLocaleString("en-US",{style:"currency",currency:tx.currency})}</p><p className="mt-1 text-xs capitalize text-black/40">{tx.status}</p></div></div>)}</div>}</div></div></main></div>
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/current-user";
+import { prisma } from "@/lib/db";
+import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
+
+export const dynamic = "force-dynamic";
+
+export default async function Transactions() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const txs = await prisma.transaction.findMany({
+    where: { initiatedById: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: {
+      id: true,
+      reference: true,
+      type: true,
+      status: true,
+      amount: true,
+      currency: true,
+      description: true,
+      createdAt: true,
+    },
+  });
+
+  return (
+    <div className="min-h-screen md:pl-[248px] transition-[padding]">
+      <AppSidebar />
+      <main className="app-shell">
+        <div className="container py-10">
+          <p className="text-sm text-black/40">Activity</p>
+          <h1 className="mt-2 text-4xl font-semibold tracking-[-.035em]">Transactions</h1>
+          <p className="mt-3 text-black/45">A clear record of your latest financial activity.</p>
+
+          <div className="mt-9 overflow-hidden rounded-[26px] border border-black/8 bg-white shadow-card">
+            {txs.length === 0 ? (
+              <p className="p-7 text-black/45">No transactions yet.</p>
+            ) : (
+              <div className="divide-y divide-black/5">
+                {txs.map((tx) => (
+                  <div key={tx.id} className="flex items-center gap-4 p-5">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#f0f0eb]">
+                      {tx.type.toLowerCase().includes("withdraw") ? (
+                        <ArrowDownLeft className="h-5 w-5" />
+                      ) : (
+                        <ArrowUpRight className="h-5 w-5" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold capitalize">{tx.type.replaceAll("_", " ")}</p>
+                      <p className="truncate text-sm text-black/40">{tx.description || tx.reference}</p>
+                      <p className="mt-1 text-xs text-black/30">{tx.createdAt.toLocaleString()}</p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-semibold">
+                        {Number(tx.amount).toLocaleString("en-US", {
+                          style: "currency",
+                          currency: tx.currency,
+                        })}
+                      </p>
+                      <p className="mt-1 text-xs capitalize text-black/40">{tx.status}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }
