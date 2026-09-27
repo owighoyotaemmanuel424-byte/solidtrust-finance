@@ -2,36 +2,26 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
+import { ArrowDownToLine, ArrowUpRight, CreditCard, LogOut, UserRound, Wallet } from "lucide-react";
 
-export const dynamic = "force-dynamic";
-
-function money(value: unknown) {
-  return Number(value ?? 0).toLocaleString("en-US", { style: "currency", currency: "USD" });
-}
-
-export default async function Dashboard() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const accounts = await prisma.account.findMany({
-    where: { userId: user.id, isSystem: false },
-    include: { ledgerEntries: { select: { direction: true, amount: true } } },
-    orderBy: { createdAt: "asc" },
-  });
-
-  const accountIds = accounts.map((a) => a.id);
-  const entries = accountIds.length ? await prisma.ledgerEntry.findMany({
-    where: { accountId: { in: accountIds } },
-    select: { direction: true, amount: true },
-  }) : [];
-
-  const balance = entries.reduce((sum, entry) => sum + (entry.direction === "credit" ? Number(entry.amount) : -Number(entry.amount)), 0);
-  const recent = accountIds.length ? await prisma.transaction.findMany({
-    where: { ledgerEntries: { some: { accountId: { in: accountIds } } } },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    select: { id: true, reference: true, type: true, status: true, amount: true, currency: true, description: true, createdAt: true },
-  }) : [];
-
-  return <main className="min-h-screen bg-trust-50"><header className="border-b border-trust-100 bg-white"><div className="container flex h-16 items-center justify-between"><Link href="/" className="font-bold text-trust-800">SolidTrust</Link><nav className="flex items-center gap-4 text-sm"><Link href="/accounts" className="text-slate-600">Accounts</Link><Link href="/transactions" className="text-slate-600">Transactions</Link><Link href="/withdraw" className="text-slate-600">Withdraw</Link><Link href="/profile" className="text-slate-600">Profile</Link><form action="/api/auth/logout" method="post"><button className="font-semibold text-trust-700">Sign out</button></form></nav></div></header><div className="container py-10"><p className="text-sm font-medium text-trust-600">Customer dashboard</p><h1 className="mt-2 text-3xl font-bold text-ink">Welcome, {user.fullName}</h1><div className="mt-8 rounded-3xl bg-trust-800 p-7 text-white shadow-soft"><p className="text-sm text-trust-200">Total balance</p><p className="mt-2 text-4xl font-bold">{money(balance)}</p><p className="mt-2 text-sm text-trust-200">{accounts.length} account{accounts.length === 1 ? "" : "s"} · USD</p></div><section className="mt-8 grid gap-5 md:grid-cols-2">{accounts.map((account)=><Link key={account.id} href={`/accounts/${account.id}`} className="rounded-3xl border border-trust-100 bg-white p-6 shadow-soft"><div className="flex items-center justify-between"><span className="font-semibold capitalize">{account.type} account</span><span className="rounded-full bg-trust-50 px-3 py-1 text-xs font-semibold capitalize text-trust-700">{account.status}</span></div><p className="mt-4 font-mono text-sm text-slate-500">{account.accountNumber}</p></Link>)}</section><section className="mt-8 rounded-3xl border border-trust-100 bg-white p-6 shadow-soft"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Recent activity</h2><Link href="/transactions" className="text-sm font-semibold text-trust-700">View all</Link></div>{recent.length === 0 ? <p className="mt-6 text-slate-500">No transactions yet.</p> : <div className="mt-5 divide-y">{recent.map((tx)=><div key={tx.id} className="flex items-center justify-between gap-4 py-4"><div><p className="font-semibold capitalize">{tx.type.replaceAll("_"," ")}</p><p className="text-sm text-slate-500">{tx.description || tx.reference}</p></div><div className="text-right"><p className="font-semibold">{money(tx.amount)}</p><p className="text-xs capitalize text-slate-500">{tx.status}</p></div></div>)}</div>}</section></div></main>;
+export const dynamic="force-dynamic";
+function money(value:unknown){return Number(value??0).toLocaleString("en-US",{style:"currency",currency:"USD"});}
+export default async function Dashboard(){
+ const user=await getCurrentUser(); if(!user)redirect("/login");
+ const accounts=await prisma.account.findMany({where:{userId:user.id,isSystem:false},orderBy:{createdAt:"asc"}});
+ const ids=accounts.map(a=>a.id);
+ const entries=ids.length?await prisma.ledgerEntry.findMany({where:{accountId:{in:ids}},select:{direction:true,amount:true}}):[];
+ const balance=entries.reduce((sum,e)=>sum+(e.direction==="credit"?Number(e.amount):-Number(e.amount)),0);
+ const recent=ids.length?await prisma.transaction.findMany({where:{ledgerEntries:{some:{accountId:{in:ids}}}},orderBy:{createdAt:"desc"},take:6,select:{id:true,reference:true,type:true,status:true,amount:true,currency:true,description:true,createdAt:true}}):[];
+ return <main className="app-shell">
+  <header className="sticky top-0 z-30 border-b border-black/5 bg-[#f5f5f2]/90 backdrop-blur-xl"><div className="container flex h-18 h-[72px] items-center justify-between"><Link href="/" className="flex items-center gap-3 font-bold tracking-tight"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#171717] text-sm text-white">S</span>SolidTrust</Link><nav className="hidden items-center gap-6 text-sm font-medium text-black/55 md:flex"><Link href="/dashboard" className="text-black">Overview</Link><Link href="/accounts">Accounts</Link><Link href="/transactions">Activity</Link><Link href="/profile">Profile</Link></nav><div className="flex items-center gap-2"><Link href="/profile" className="grid h-10 w-10 place-items-center rounded-full border border-black/8 bg-white"><UserRound className="h-4 w-4"/></Link><form action="/api/auth/logout" method="post"><button aria-label="Sign out" className="grid h-10 w-10 place-items-center rounded-full border border-black/8 bg-white text-black/55 hover:text-black"><LogOut className="h-4 w-4"/></button></form></div></div></header>
+  <div className="container py-10">
+   <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p className="text-sm font-medium text-black/40">Good to see you</p><h1 className="mt-2 text-3xl font-semibold tracking-[-.03em]">Hi, {user.fullName.split(" ")[0]}</h1></div><Link href="/profile" className="text-sm font-semibold text-black/60 hover:text-black">Account settings →</Link></div>
+   <section className="mt-8 grid gap-4 lg:grid-cols-[1.35fr_.65fr]">
+    <div className="rounded-[28px] bg-[#171717] p-7 text-white shadow-card md:p-9"><div className="flex items-center justify-between"><p className="text-sm text-white/50">Total balance</p><span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium">USD</span></div><p className="mt-4 text-5xl font-semibold tracking-[-.045em]">{money(balance)}</p><p className="mt-3 text-sm text-white/45">Across {accounts.length} account{accounts.length===1?"":"s"}</p><div className="mt-8 flex flex-wrap gap-3"><Link href="/transfer" className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black"><ArrowUpRight className="h-4 w-4"/>Send money</Link><Link href="/withdraw" className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-sm font-semibold text-white"><ArrowDownToLine className="h-4 w-4"/>Withdraw</Link></div></div>
+    <div className="rounded-[28px] border border-black/8 bg-white p-7 shadow-card"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-2xl bg-[#f0f0eb]"><CreditCard className="h-5 w-5"/></div><div><p className="font-semibold">Your accounts</p><p className="text-xs text-black/40">{accounts.length} active</p></div></div><div className="mt-6 space-y-3">{accounts.slice(0,3).map(a=><Link key={a.id} href={"/accounts/"+a.id} className="block rounded-2xl bg-[#f7f7f4] p-4 hover:bg-[#eeeeea]"><div className="flex justify-between gap-3"><span className="text-sm font-semibold capitalize">{a.type} account</span><span className="text-xs text-black/40">{a.currency}</span></div><p className="mt-2 font-mono text-xs text-black/40">{a.accountNumber}</p></Link>)}</div><Link href="/accounts" className="mt-5 block text-sm font-semibold">View all accounts →</Link></div>
+   </section>
+   <section className="mt-8 rounded-[28px] border border-black/8 bg-white shadow-card"><div className="flex items-center justify-between border-b border-black/5 p-6"><div><h2 className="font-semibold">Recent activity</h2><p className="mt-1 text-sm text-black/40">Your latest financial activity</p></div><Link href="/transactions" className="text-sm font-semibold">View all</Link></div>{recent.length===0?<p className="p-6 text-sm text-black/45">No transactions yet.</p>:<div className="divide-y divide-black/5">{recent.map(tx=><div key={tx.id} className="flex items-center justify-between gap-4 p-5"><div className="min-w-0"><p className="font-medium capitalize">{tx.type.replaceAll("_"," ")}</p><p className="mt-1 truncate text-sm text-black/40">{tx.description||tx.reference}</p></div><div className="text-right"><p className="font-semibold">{money(tx.amount)}</p><p className="mt-1 text-xs capitalize text-black/40">{tx.status}</p></div></div>)}</div>}</section>
+  </div>
+ </main>
 }
