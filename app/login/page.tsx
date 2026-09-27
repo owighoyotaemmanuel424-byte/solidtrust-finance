@@ -32,7 +32,7 @@ export default function Login() {
         return;
       }
 
-      router.replace("/");
+      router.replace("/dashboard");
       router.refresh();
     } catch {
       setError("Unable to connect to SolidTrust Finance. Please try again.");
