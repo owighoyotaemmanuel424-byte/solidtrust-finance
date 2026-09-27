@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum Role { customer admin compliance }
+enum AccountType { savings current }
+enum AccountStatus { active frozen closed }
+enum TxType { deposit withdrawal transfer loan_disbursement loan_repayment fee interest }
+enum TxStatus { pending posted failed reversed }
+enum LedgerDirection { debit credit }
+enum LoanStatus { applied under_review approved disbursed repaying repaid defaulted rejected }
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  emailVerified DateTime? @map("email_verified")
+  passwordHash String? @map("password_hash")
+  fullName String @map("full_name")
+  phone String?
+  role Role @default(customer)
+  kycStatus String @default("pending") @map("kyc_status")
+  mfaEnabled Boolean @default(false) @map("mfa_enabled")
+  mfaSecret String? @map("mfa_secret")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  accounts Account[]
+  transactions Transaction[] @relation("initiated")
+  loans Loan[]
+  auditLogs AuditLog[]
+  @@map("users")
+}
+model Account {
+  id String @id @default(uuid())
+  userId String? @map("user_id")
+  accountNumber String @unique @map("account_number")
+  type AccountType
+  currency String @default("USD")
+  status AccountStatus @default(active)
+  isSystem Boolean @default(false) @map("is_system")
+  createdAt DateTime @default(now()) @map("created_at")
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgerEntries LedgerEntry[]
+  @@index([userId])
+  @@map("accounts")
+}
+model Transaction {
+  id String @id @default(uuid())
+  reference String @unique
+  type TxType
+  status TxStatus @default(pending)
+  amount Decimal @db.Decimal(18, 2)
+  currency String @default("USD")
+  description String?
+  metadata Json?
+  initiatedById String? @map("initiated_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  postedAt DateTime? @map("posted_at")
+  initiatedBy User? @relation("initiated", fields: [initiatedById], references: [id])
+  ledgerEntries LedgerEntry[]
+  loanRepayments LoanRepayment[]
+  @@index([type])
+  @@index([createdAt])
+  @@map("transactions")
+}
+model LedgerEntry {
+  id String @id @default(uuid())
+  transactionId String @map("transaction_id")
+  accountId String @map("account_id")
+  direction LedgerDirection
+  amount Decimal @db.Decimal(18, 2)
+  currency String @default("USD")
+  runningHash String? @map("running_hash")
+  createdAt DateTime @default(now()) @map("created_at")
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+  @@index([transactionId])
+  @@index([accountId])
+  @@map("ledger_entries")
+}
+model Loan {
+  id String @id @default(uuid())
+  userId String @map("user_id")
+  principal Decimal @db.Decimal(18, 2)
+  interestRate Decimal @db.Decimal(5, 4) @map("interest_rate")
+  termMonths Int @map("term_months")
+  status LoanStatus @default(applied)
+  disbursedAt DateTime? @map("disbursed_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user User @relation(fields: [userId], references: [id])
+  repayments LoanRepayment[]
+  @@map("loans")
+}
+model LoanRepayment {
+  id String @id @default(uuid())
+  loanId String @map("loan_id")
+  transactionId String @map("transaction_id")
+  dueDate DateTime @map("due_date")
+  paidAt DateTime? @map("paid_at")
+  amountDue Decimal @db.Decimal(18, 2) @map("amount_due")
+  amountPaid Decimal @default(0) @db.Decimal(18, 2) @map("amount_paid")
+  loan Loan @relation(fields: [loanId], references: [id])
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  @@map("loan_repayments")
+}
+model AuditLog {
+  id String @id @default(uuid())
+  actorId String? @map("actor_id")
+  action String
+  entity String
+  entityId String? @map("entity_id")
+  before Json?
+  after Json?
+  ip String?
+  userAgent String? @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  actor User? @relation(fields: [actorId], references: [id])
+  @@index([actorId])
+  @@index([entity, entityId])
+  @@map("audit_log")
+}
