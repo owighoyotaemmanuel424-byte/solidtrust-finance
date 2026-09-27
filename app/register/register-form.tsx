@@ -1,28 +1,5 @@
 "use client";
-
-import Link from "next/link";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-
-export default function RegisterForm() {
-  const router = useRouter();
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    setLoading(true);
-    const form = new FormData(event.currentTarget);
-    try {
-      const response = await fetch("/api/auth/register", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ name:String(form.get("name")??""), email:String(form.get("email")??""), password:String(form.get("password")??"") }) });
-      const data = await response.json();
-      if (!response.ok) { setError(data.error ?? "Unable to create your account."); return; }
-      router.replace("/dashboard");
-      router.refresh();
-    } catch { setError("Unable to connect to SolidTrust Finance. Please try again."); }
-    finally { setLoading(false); }
-  }
-
-  return <main className="grid min-h-screen place-items-center bg-trust-50 p-5"><div className="w-full max-w-md rounded-3xl border border-trust-100 bg-white p-8 shadow-soft"><Link href="/" className="font-bold text-trust-800">← SolidTrust Finance</Link><h1 className="mt-10 text-3xl font-bold">Create your account</h1><p className="mt-2 text-slate-500">A secure starting point for your financial journey.</p><form onSubmit={submit} className="mt-8 space-y-5"><label className="block text-sm font-semibold">Full name<input name="name" required className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-trust-500" placeholder="Your full name"/></label><label className="block text-sm font-semibold">Email<input type="email" name="email" required className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-trust-500" placeholder="you@example.com"/></label><label className="block text-sm font-semibold">Password<input type="password" name="password" minLength={8} required className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-trust-500" placeholder="At least 8 characters"/></label>{error&&<p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}<button type="submit" disabled={loading} className="w-full rounded-xl bg-trust-700 py-3.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">{loading?"Creating account…":"Create account"}</button></form><p className="mt-7 text-center text-sm text-slate-500">Already have an account? <Link href="/login" className="font-semibold text-trust-700">Sign in</Link></p></div></main>;
-}
+import Link from "next/link"; import {FormEvent,useState} from "react"; import {useRouter} from "next/navigation"; import {ArrowRight,ShieldCheck} from "lucide-react";
+export default function RegisterForm(){const router=useRouter();const[error,setError]=useState("");const[loading,setLoading]=useState(false);
+async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setError("");setLoading(true);const f=new FormData(e.currentTarget);try{const r=await fetch("/api/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:String(f.get("name")??""),email:String(f.get("email")??""),password:String(f.get("password")??"")})});const d=await r.json();if(!r.ok){setError(d.error??"Unable to create your account.");return}router.replace("/dashboard");router.refresh()}catch{setError("Unable to connect. Please try again.")}finally{setLoading(false)}}
+return <main className="min-h-screen bg-[#f5f5f2] p-5"><div className="mx-auto grid min-h-[calc(100vh-40px)] max-w-6xl items-center gap-12 lg:grid-cols-2"><div className="hidden lg:block"><Link href="/" className="flex items-center gap-3 font-bold"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#171717] text-white">S</span>SolidTrust</Link><h1 className="mt-20 max-w-xl text-6xl font-semibold tracking-[-.05em] leading-[.98]">Start with clarity.</h1><p className="mt-6 max-w-lg text-lg leading-8 text-black/50">Create your SolidTrust account and keep your everyday financial activity in one clear place.</p><div className="mt-8 flex items-center gap-2 text-sm text-black/50"><ShieldCheck className="h-4 w-4"/>Secure account creation</div></div><div className="mx-auto w-full max-w-md rounded-[28px] border border-black/8 bg-white p-7 shadow-card md:p-9"><Link href="/" className="text-sm font-semibold text-black/50 hover:text-black">← Back to SolidTrust</Link><h2 className="mt-10 text-3xl font-semibold tracking-[-.03em]">Create your account</h2><p className="mt-2 text-black/45">It only takes a few details to get started.</p><form onSubmit={submit} className="mt-8 space-y-5"><label className="block text-sm font-semibold">Full name<input name="name" required className="mt-2 w-full rounded-2xl border border-black/10 bg-[#fafaf8] px-4 py-3.5 outline-none focus:border-black" placeholder="Your full name"/></label><label className="block text-sm font-semibold">Email<input type="email" name="email" required className="mt-2 w-full rounded-2xl border border-black/10 bg-[#fafaf8] px-4 py-3.5 outline-none focus:border-black" placeholder="you@example.com"/></label><label className="block text-sm font-semibold">Password<input type="password" name="password" minLength={8} required className="mt-2 w-full rounded-2xl border border-black/10 bg-[#fafaf8] px-4 py-3.5 outline-none focus:border-black" placeholder="At least 8 characters"/></label>{error&&<p role="alert" className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}<button disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-full bg-[#171717] py-4 font-semibold text-white disabled:opacity-50">{loading?"Creating account…":<>Create account <ArrowRight className="h-4 w-4"/></>}</button></form><p className="mt-7 text-center text-sm text-black/45">Already have an account? <Link href="/login" className="font-semibold text-black">Sign in</Link></p></div></div></main>}
