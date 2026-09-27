@@ -42,7 +42,7 @@ export default async function AdminDashboard() {
       <div className="container py-10">
         <p className="text-sm font-medium text-trust-600">Operations</p>
         <h1 className="mt-2 text-3xl font-bold text-ink">Admin dashboard</h1>
-        <p className="mt-2 text-slate-500">Monitor customers, accounts, lending activity, and ledger movements.</p>
+        <p className="mt-2 text-slate-500">Monitor customers, accounts, lending activity, and ledger movements.</p><div className="mt-6 flex flex-wrap gap-3"><Link href="/admin/funding" className="rounded-xl bg-trust-700 px-4 py-2 text-sm font-semibold text-white">Fund customer</Link><Link href="/admin/withdrawals" className="rounded-xl border border-trust-200 bg-white px-4 py-2 text-sm font-semibold text-trust-700">Review withdrawals</Link></div>
 
         <section className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {[
