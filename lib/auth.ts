@@ -11,6 +11,8 @@ function secret() {
 function encode(value: string) { return Buffer.from(value, "utf8").toString("base64url"); }
 function sign(payload: string) { return createHmac("sha256", secret()).update(payload).digest("base64url"); }
 
+export function assertSessionSecret() { secret(); }
+
 export function createSessionToken(userId: string) {
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_DAYS * 86400;
   const payload = encode(JSON.stringify({ userId, expiresAt }));
