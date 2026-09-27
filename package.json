@@ -13,7 +13,7 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "test": "vitest run",
-    "vercel-build": "prisma migrate deploy && next build"
+    "vercel-build": "prisma migrate resolve --rolled-back 20260927030000_add_withdrawal_requests || true; prisma migrate deploy && next build"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
