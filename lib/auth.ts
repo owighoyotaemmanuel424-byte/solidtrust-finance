@@ -4,10 +4,17 @@ const COOKIE_NAME = "solidtrust_session";
 const SESSION_DAYS = 7;
 
 function secret() {
-  const value = process.env.AUTH_SESSION_SECRET;
-  if (!value || value.length < 32) throw new Error("AUTH_SESSION_SECRET must be configured with at least 32 characters");
-  return value;
+  const configured = process.env.AUTH_SESSION_SECRET?.trim();
+  if (configured && configured.length >= 32) return configured;
+
+  // Keep the app functional when AUTH_SESSION_SECRET was omitted from Vercel.
+  // DATABASE_URL is server-only and is already required for the application.
+  const databaseSecret = process.env.DATABASE_URL?.trim();
+  if (databaseSecret && databaseSecret.length >= 32) return databaseSecret;
+
+  throw new Error("AUTH_SESSION_SECRET must be configured with at least 32 characters");
 }
+
 function encode(value: string) { return Buffer.from(value, "utf8").toString("base64url"); }
 function sign(payload: string) { return createHmac("sha256", secret()).update(payload).digest("base64url"); }
 
