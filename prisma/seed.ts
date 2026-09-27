@@ -14,6 +14,9 @@ if (!demoPassword || demoPassword.length < 16) {
   throw new Error('DEMO_SEED_PASSWORD must be configured with at least 16 characters');
 }
 
+const adminSeedPassword: string = adminPassword;
+const demoSeedPassword: string = demoPassword;
+
 const adapter = new PrismaNeon({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
@@ -33,7 +36,10 @@ async function main() {
     });
   }
 
-  const [adminHash, demoHash] = await Promise.all([hash(adminPassword), hash(demoPassword)]);
+  const [adminHash, demoHash] = await Promise.all([
+    hash(adminSeedPassword),
+    hash(demoSeedPassword),
+  ]);
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@solidtrust.finance' },
