@@ -75,3 +75,5 @@ export default async function Transactions() {
     </div>
   );
 }
+
+// SolidTrust deployment syntax verification
