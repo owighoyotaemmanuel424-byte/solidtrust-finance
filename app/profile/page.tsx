@@ -64,3 +64,4 @@ export default async function Profile() {
     </div>
   );
 }
+// SolidTrust deployment syntax verification
