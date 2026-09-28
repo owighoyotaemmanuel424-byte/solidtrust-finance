@@ -1,13 +1,22 @@
 import { randomUUID } from "node:crypto";
 import { hash } from "@node-rs/argon2";
 import { prisma } from "@/lib/db";
-import { assertSessionSecret, createSessionToken, sessionCookie } from "@/lib/auth";
+import {
+  assertSessionSecret,
+  createSessionToken,
+  serializeSessionCookie,
+} from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function isPrismaUniqueError(error: unknown) {
-  return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "P2002";
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
+  );
 }
 
 export async function POST(request: Request) {
@@ -22,7 +31,7 @@ export async function POST(request: Request) {
     if (name.length < 2) {
       return Response.json({ error: "Please enter your full name." }, { status: 400 });
     }
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
+    if (!/^\\S+@\\S+\\.\\S+$/.test(email)) {
       return Response.json({ error: "Please enter a valid email address." }, { status: 400 });
     }
     if (password.length < 8) {
@@ -44,8 +53,6 @@ export async function POST(request: Request) {
     const passwordHash = await hash(password);
     const accountNumber = `30${randomUUID().replace(/-/g, "").slice(0, 10)}`;
 
-    // The nested account create is atomic and avoids interactive transactions
-    // with the Neon adapter.
     const user = await prisma.user.create({
       data: {
         email,
@@ -79,11 +86,11 @@ export async function POST(request: Request) {
       console.error("Registration audit log failed", auditError);
     }
 
-    const response = Response.json({ ok: true, user }, { status: 201 });
     const secure = new URL(request.url).protocol === "https:";
-    response.headers.append(
+    const response = Response.json({ ok: true, user }, { status: 201 });
+    response.headers.set(
       "Set-Cookie",
-      `${sessionCookie.name}=${createSessionToken(user.id)}; Path=/; HttpOnly; ${secure ? "Secure; " : ""}SameSite=Lax; Max-Age=${sessionCookie.maxAge}`,
+      serializeSessionCookie(createSessionToken(user.id), secure),
     );
     response.headers.set("Cache-Control", "no-store");
     return response;
