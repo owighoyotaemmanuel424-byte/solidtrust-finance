@@ -56,3 +56,4 @@ export default async function Accounts() {
     </div>
   );
 }
+// SolidTrust deployment syntax verification
