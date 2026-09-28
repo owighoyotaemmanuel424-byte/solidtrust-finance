@@ -1,4 +1,4 @@
-import { hash, verify } from "@node-rs/argon2";
+import { verify } from "@node-rs/argon2";
 import { prisma } from "@/lib/db";
 import { assertSessionSecret, createSessionToken, serializeSessionCookie } from "@/lib/auth";
 
