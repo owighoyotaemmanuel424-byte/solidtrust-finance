@@ -1,11 +1,12 @@
-import { sessionCookie } from "@/lib/auth";
+import { serializeClearedSessionCookie } from "@/lib/auth";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const response = Response.redirect(new URL("/login", request.url));
   const secure = new URL(request.url).protocol === "https:";
-  response.headers.set("Set-Cookie", `${sessionCookie.name}=; Path=/; HttpOnly; ${secure ? "Secure; " : ""}SameSite=Lax; Max-Age=0`);
+  const response = Response.redirect(new URL("/login", request.url), 303);
+  response.headers.set("Set-Cookie", serializeClearedSessionCookie(secure));
   response.headers.set("Cache-Control", "no-store");
   return response;
 }
